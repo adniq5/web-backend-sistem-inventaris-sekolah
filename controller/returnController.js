@@ -27,13 +27,13 @@ exports.create = catchAsync(async (req, res, next) => {
 
   const loan = await Loan.findOne({
     _id: req.body.loan,
-    status: 'approved',
+    status: { $in: ['approved', 'borrowed', 'overdue'] },
     archived: false,
     created_by: req.user._id
   });
 
   if (!loan) {
-    return next(new AppError('Peminjaman approved milik Anda tidak ditemukan.', 404));
+    return next(new AppError('Peminjaman approved, borrowed, atau overdue milik Anda tidak ditemukan.', 404));
   }
 
   if (req.body.quantity > loan.quantity) {
@@ -116,10 +116,10 @@ exports.verify = catchAsync(async (req, res, next) => {
   const loan = await Loan.findOne({
     _id: returnRecord.loan,
     archived: false,
-    status: 'approved'
+    status: { $in: ['approved', 'borrowed', 'overdue'] }
   });
   if (!loan) {
-    return next(new AppError('Peminjaman harus berstatus approved untuk diverifikasi.', 400));
+    return next(new AppError('Peminjaman harus berstatus approved, borrowed, atau overdue untuk diverifikasi.', 400));
   }
 
   const item = await Item.findOneAndUpdate(
@@ -156,8 +156,8 @@ exports.verify = catchAsync(async (req, res, next) => {
   }
 
   const returnedLoan = await Loan.findOneAndUpdate(
-    { _id: loan._id, archived: false, status: 'approved' },
-    { status: 'returned', updated_by: req.user._id, updated_at: verifiedAt },
+    { _id: loan._id, archived: false, status: { $in: ['approved', 'borrowed', 'overdue'] } },
+    { status: 'returned', returned_at: verifiedAt, updated_by: req.user._id, updated_at: verifiedAt },
     { new: true, runValidators: true }
   );
   if (!returnedLoan) {

@@ -36,4 +36,31 @@ function validateRejection(req, res, next) {
   next();
 }
 
-module.exports = { validateLoan, validateRejection };
+function validateBorrow(req, res, next) {
+  const { due_date } = req.body;
+
+  if (typeof due_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(due_date)) {
+    return next(new AppError('Tanggal jatuh tempo harus berformat YYYY-MM-DD.', 400));
+  }
+
+  const [year, month, day] = due_date.split('-').map(Number);
+  const dueDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+  if (
+    dueDate.getUTCFullYear() !== year ||
+    dueDate.getUTCMonth() !== month - 1 ||
+    dueDate.getUTCDate() !== day
+  ) {
+    return next(new AppError('Tanggal jatuh tempo tidak valid.', 400));
+  }
+
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  if (dueDate < today) {
+    return next(new AppError('Tanggal jatuh tempo tidak boleh berada di masa lalu.', 400));
+  }
+
+  req.body.due_date = dueDate;
+  next();
+}
+
+module.exports = { validateLoan, validateRejection, validateBorrow };

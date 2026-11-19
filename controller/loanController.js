@@ -23,10 +23,14 @@ exports.create = catchAsync(async (req, res, next) => {
     return next(new AppError('Jumlah peminjaman melebihi stok barang saat ini.', 400));
   }
 
+  await item.populate('category', 'name');
+
   const loan = await Loan.create({
     item: item._id,
     quantity: req.body.quantity,
     purpose: req.body.purpose || '',
+    item_name: item.name,
+    item_category_name: item.category?.name || '',
     created_by: req.user._id,
     updated_by: req.user._id
   });
@@ -47,6 +51,20 @@ exports.create = catchAsync(async (req, res, next) => {
 
 exports.list = catchAsync(async (req, res) => {
   const loans = await Loan.find({ archived: false, ...ownerFilter(req) })
+    .populate('item', 'name stock')
+    .populate('created_by', 'name email')
+    .populate('updated_by', 'name email')
+    .sort({ created_at: -1 });
+
+  res.status(200).json({
+    status: 'success',
+    results: loans.length,
+    data: { loans }
+  });
+});
+
+exports.my = catchAsync(async (req, res) => {
+  const loans = await Loan.find({ archived: false, created_by: req.user._id })
     .populate('item', 'name stock')
     .populate('created_by', 'name email')
     .populate('updated_by', 'name email')
@@ -168,5 +186,75 @@ exports.reject = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Pengajuan peminjaman ditolak.',
     data: { loan }
+  });
+});
+
+exports.borrow = catchAsync(async (req, res, next) => {
+  validateId(req.params.id, 'peminjaman');
+
+  const borrowedAt = new Date();
+  const loan = await Loan.findOneAndUpdate(
+    { _id: req.params.id, archived: false, status: 'approved' },
+    {
+      status: 'borrowed',
+      borrowed_at: borrowedAt,
+      due_date: req.body.due_date,
+      updated_by: req.user._id,
+      updated_at: borrowedAt
+    },
+    { new: true, runValidators: true }
+  )
+    .populate('item', 'name stock')
+    .populate('created_by', 'name email')
+    .populate('updated_by', 'name email');
+
+  if (!loan) return next(new AppError('Peminjaman dengan status approved tidak ditemukan.', 404));
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Peminjaman berhasil diubah menjadi borrowed.',
+    data: { loan }
+  });
+});
+
+exports.markOverdue = catchAsync(async (req, res, next) => {
+  validateId(req.params.id, 'peminjaman');
+
+  const loan = await Loan.findOne({
+    _id: req.params.id,
+    archived: false,
+    status: 'borrowed'
+  });
+  if (!loan) return next(new AppError('Peminjaman dengan status borrowed tidak ditemukan.', 404));
+
+  if (!loan.due_date) {
+    return next(new AppError('Tanggal jatuh tempo peminjaman belum tersedia.', 400));
+  }
+
+  if (loan.due_date >= new Date()) {
+    return next(new AppError('Tanggal jatuh tempo belum terlewati.', 400));
+  }
+
+  const overdueAt = new Date();
+  const updatedLoan = await Loan.findOneAndUpdate(
+    { _id: loan._id, archived: false, status: 'borrowed' },
+    {
+      status: 'overdue',
+      overdue_at: overdueAt,
+      updated_by: req.user._id,
+      updated_at: overdueAt
+    },
+    { new: true, runValidators: true }
+  )
+    .populate('item', 'name stock')
+    .populate('created_by', 'name email')
+    .populate('updated_by', 'name email');
+
+  if (!updatedLoan) return next(new AppError('Status peminjaman sudah berubah.', 409));
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Peminjaman berhasil ditandai overdue.',
+    data: { loan: updatedLoan }
   });
 });

@@ -23,8 +23,30 @@ const loanSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'returned'],
+    enum: ['pending', 'approved', 'borrowed', 'returned', 'rejected', 'overdue'],
     default: 'pending'
+  },
+  borrowed_at: {
+    type: Date
+  },
+  due_date: {
+    type: Date
+  },
+  returned_at: {
+    type: Date
+  },
+  overdue_at: {
+    type: Date
+  },
+  item_name: {
+    type: String,
+    trim: true,
+    maxlength: [150, 'Nama snapshot barang maksimal 150 karakter.']
+  },
+  item_category_name: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Nama snapshot kategori maksimal 100 karakter.']
   },
   rejection_reason: {
     type: String,
