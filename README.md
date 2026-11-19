@@ -221,7 +221,7 @@ Endpoint Activity Logs membutuhkan autentikasi JWT dengan role `admin`.
 Contoh penggunaan filter:
 
 ```http
-GET /api/activity-logs?action=login&actor=USER_ID&page=1&limit=20
+GET /api/activity-logs?action=login&actor=USER_ID&source=internal&startDate=2026-11-01&endDate=2026-11-30&page=1&limit=20
 ```
 
 Activity Logs digunakan untuk mencatat aktivitas yang terjadi di dalam sistem, antara lain:
@@ -321,6 +321,7 @@ Content-Type: application/json
 - API menggunakan autentikasi JWT untuk endpoint yang membutuhkan akses pengguna.
 - Hak akses dibedakan berdasarkan role `user` dan `admin`.
 - Validasi input diterapkan untuk membantu menjaga konsistensi data.
+- Validasi input menggunakan middleware `express-validator` beserta aturan pada validator proyek.
 - Penghapusan kategori dan barang dilakukan melalui mekanisme arsip (*soft delete*).
 - Pengembalian barang harus diverifikasi oleh admin sebelum stok inventaris diperbarui.
 - Aktivitas pengguna dan callback eksternal dicatat dalam collection `activity_logs`.

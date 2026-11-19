@@ -1,6 +1,17 @@
 const AppError = require('../util/AppError');
+const { body, validationResult } = require('express-validator');
 
-function validateLoan(req, res, next) {
+async function validateLoan(req, res, next) {
+  await Promise.all([
+    body('item').isString().matches(/^[a-f\d]{24}$/i).withMessage('ID barang tidak valid.').run(req),
+    body('quantity').isInt({ min: 1 }).withMessage('Jumlah peminjaman harus berupa bilangan bulat minimal 1.').run(req),
+    body('purpose').optional().isString().withMessage('Keperluan harus berupa teks.')
+      .bail().isLength({ max: 500 }).withMessage('Keperluan maksimal 500 karakter.')
+      .run(req)
+  ]);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(new AppError(errors.array()[0].msg, 400));
+
   const { item, quantity, purpose } = req.body;
 
   if (typeof item !== 'string' || !/^[a-f\d]{24}$/i.test(item)) {
@@ -22,7 +33,13 @@ function validateLoan(req, res, next) {
   next();
 }
 
-function validateRejection(req, res, next) {
+async function validateRejection(req, res, next) {
+  await body('reason').optional().isString().withMessage('Alasan penolakan harus berupa teks.')
+    .bail().isLength({ max: 500 }).withMessage('Alasan penolakan maksimal 500 karakter.')
+    .run(req);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(new AppError(errors.array()[0].msg, 400));
+
   const { reason } = req.body;
 
   if (reason !== undefined && typeof reason !== 'string') {
@@ -36,7 +53,13 @@ function validateRejection(req, res, next) {
   next();
 }
 
-function validateBorrow(req, res, next) {
+async function validateBorrow(req, res, next) {
+  await body('due_date').isString().matches(/^\d{4}-\d{2}-\d{2}$/)
+    .withMessage('Tanggal jatuh tempo harus berformat YYYY-MM-DD.')
+    .run(req);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(new AppError(errors.array()[0].msg, 400));
+
   const { due_date } = req.body;
 
   if (typeof due_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(due_date)) {

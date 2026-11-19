@@ -470,6 +470,9 @@ const options = {
           parameters: [
             { name: 'action', in: 'query', schema: { type: 'string' }, description: 'Jenis aktivitas' },
             { name: 'actor', in: 'query', schema: { type: 'string' }, description: 'ObjectId pelaku' },
+            { name: 'source', in: 'query', schema: { type: 'string', enum: ['internal', 'external'] }, description: 'Sumber aktivitas' },
+            { name: 'startDate', in: 'query', schema: { type: 'string', format: 'date-time' }, description: 'Batas awal rentang aktivitas (ISO 8601)' },
+            { name: 'endDate', in: 'query', schema: { type: 'string', format: 'date-time' }, description: 'Batas akhir rentang aktivitas (ISO 8601)' },
             { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
             { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } }
           ],

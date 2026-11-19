@@ -20,6 +20,9 @@ exports.list = catchAsync(async (req, res, next) => {
   const {
     action,
     actor,
+    source,
+    startDate,
+    endDate,
     page = '1',
     limit = '20'
   } = req.query;
@@ -44,6 +47,20 @@ exports.list = catchAsync(async (req, res, next) => {
   const filter = {};
   if (action) filter.action = action;
   if (actor) filter.actor = actor;
+  if (source) filter.source = source;
+  if (startDate || endDate) {
+    filter.created_at = {};
+    if (startDate) {
+      const start = new Date(startDate);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(startDate)) start.setUTCHours(0, 0, 0, 0);
+      filter.created_at.$gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setUTCHours(23, 59, 59, 999);
+      filter.created_at.$lte = end;
+    }
+  }
 
   const [logs, total] = await Promise.all([
     ActivityLog.find(filter)
