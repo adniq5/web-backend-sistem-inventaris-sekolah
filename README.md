@@ -96,6 +96,19 @@ http://localhost:3000
 
 Port dapat disesuaikan melalui konfigurasi `PORT` pada file `.env`.
 
+### Dokumentasi Swagger
+
+Setelah server berjalan, buka dokumentasi API interaktif pada:
+
+```text
+http://localhost:3000/api-docs
+```
+
+Gunakan tombol **Authorize** untuk memasukkan:
+
+- Bearer JWT pada endpoint yang dilindungi autentikasi.
+- API Key pada header `x-api-key` untuk callback eksternal.
+
 ## Role Pengguna
 
 Sistem memiliki dua role pengguna dengan hak akses yang berbeda:
@@ -170,9 +183,12 @@ Seluruh endpoint peminjaman membutuhkan autentikasi JWT.
 |---|---|---|
 | POST | `/api/loans` | User membuat pengajuan |
 | GET | `/api/loans` | User melihat miliknya; admin melihat semua |
+| GET | `/api/loans/my` | User melihat riwayat peminjaman miliknya |
 | GET | `/api/loans/:id` | User melihat miliknya; admin dapat melihat semua |
 | PATCH | `/api/loans/:id/approve` | Admin |
 | PATCH | `/api/loans/:id/reject` | Admin |
+| PATCH | `/api/loans/:id/borrow` | Admin mengubah approved menjadi borrowed |
+| PATCH | `/api/loans/:id/mark-overdue` | Admin menandai borrowed sebagai overdue |
 
 ### 5. Returns
 
