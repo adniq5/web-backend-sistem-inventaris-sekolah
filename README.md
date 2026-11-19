@@ -1,36 +1,60 @@
 # Sistem Inventaris Sekolah API
 
-## Deskripsi dan tujuan
+## Deskripsi dan Tujuan
 
-Backend REST API untuk mengelola pengguna, kategori, barang, peminjaman, pengembalian, activity log, dan callback aktivitas eksternal. Proyek ini bertujuan menyediakan backend terautentikasi untuk pencatatan inventaris sekolah dan alur peminjaman/pengembalian yang dapat diverifikasi admin.
+Sistem Inventaris Sekolah API merupakan backend REST API yang dikembangkan untuk mengelola data pengguna, kategori, barang, peminjaman, pengembalian, activity log, serta callback aktivitas eksternal.
 
-## Teknologi
+Proyek ini bertujuan menyediakan layanan backend terautentikasi untuk membantu proses pencatatan dan pengelolaan inventaris sekolah. Sistem juga mendukung alur peminjaman dan pengembalian barang yang melibatkan verifikasi oleh admin agar perubahan data dan stok inventaris dapat dikelola dengan baik.
+
+## Teknologi yang Digunakan
 
 - Node.js
 - Express 5
-- MongoDB dan Mongoose
+- MongoDB
+- Mongoose
 - JSON Web Token (JWT)
 - bcryptjs
 - dotenv
 
 ## Instalasi
 
-Prasyarat:
+### Prasyarat
 
-- Node.js 18 atau lebih baru
-- MongoDB yang dapat diakses aplikasi
+Pastikan perangkat telah memiliki:
 
-Instal dependency:
+- Node.js versi 18 atau lebih baru.
+- MongoDB yang dapat diakses oleh aplikasi.
+- Git untuk mengunduh repository.
 
-```bash
-npm install
-# Untuk instalasi reproducible berdasarkan package-lock.json:
-npm ci
-```
+### Langkah Instalasi
 
-Salin `.env.example` menjadi `.env`, lalu isi nilainya pada environment lokal. Jangan commit `.env` atau membagikan nilai rahasia.
+1. Clone repository:
 
-## Konfigurasi environment
+   ```bash
+   git clone https://github.com/adniq5/web-backend-sistem-inventaris-sekolah.git
+   ```
+
+2. Masuk ke direktori proyek:
+
+   ```bash
+   cd web-backend-sistem-inventaris-sekolah
+   ```
+
+3. Instal dependency:
+
+   ```bash
+   npm ci
+   ```
+
+4. Salin file `.env.example` menjadi `.env`.
+
+5. Sesuaikan nilai konfigurasi environment pada file `.env` dengan lingkungan lokal.
+
+   **Catatan:** Jangan mengunggah file `.env` ke repository atau membagikan nilai rahasia yang terdapat di dalamnya.
+
+## Konfigurasi Environment
+
+Berikut contoh konfigurasi environment yang digunakan:
 
 ```env
 PORT=3000
@@ -41,38 +65,72 @@ EXTERNAL_API_KEY=ganti_dengan_api_key_eksternal
 NODE_ENV=development
 ```
 
-`MONGODB_URI` digunakan dengan database `school_inventory`. `JWT_SECRET` diperlukan untuk register/login. `EXTERNAL_API_KEY` diperlukan oleh endpoint callback eksternal.
+Keterangan:
 
-## Menjalankan server
+- `PORT`: Port yang digunakan oleh server.
+- `MONGODB_URI`: Alamat koneksi MongoDB. Aplikasi menggunakan database `school_inventory`.
+- `JWT_SECRET`: Secret key untuk proses autentikasi JWT.
+- `JWT_EXPIRES_IN`: Masa berlaku token JWT.
+- `EXTERNAL_API_KEY`: API key untuk melindungi endpoint callback eksternal.
+- `NODE_ENV`: Menentukan environment aplikasi.
 
-Mode normal:
+## Menjalankan Server
+
+### Mode Normal
 
 ```bash
 npm start
 ```
 
-Mode development:
+### Mode Development
 
 ```bash
 npm run dev
 ```
 
-Server tersedia di `http://localhost:3000` atau port yang diatur melalui `PORT`.
+Setelah server berjalan, API dapat diakses melalui:
 
-## Role pengguna
+```text
+http://localhost:3000
+```
 
-- `user`: login, melihat profil, membuat peminjaman, dan mengajukan pengembalian miliknya.
-- `admin`: mengelola kategori/barang, menyetujui atau menolak peminjaman, memverifikasi pengembalian, dan melihat activity logs serta seluruh data pengembalian.
+Port dapat disesuaikan melalui konfigurasi `PORT` pada file `.env`.
 
-## Endpoint
+## Role Pengguna
 
-Semua endpoint yang membutuhkan JWT menggunakan header:
+Sistem memiliki dua role pengguna dengan hak akses yang berbeda:
+
+### 1. User
+
+Pengguna dengan role `user` memiliki akses untuk:
+
+- Melakukan login dan melihat profil.
+- Membuat pengajuan peminjaman barang.
+- Melihat data peminjaman miliknya.
+- Mengajukan pengembalian barang.
+- Melihat riwayat pengembalian miliknya.
+
+### 2. Admin
+
+Pengguna dengan role `admin` memiliki akses untuk:
+
+- Mengelola kategori barang.
+- Mengelola data barang.
+- Melihat seluruh data peminjaman.
+- Menyetujui atau menolak pengajuan peminjaman.
+- Melihat seluruh data pengembalian.
+- Memverifikasi pengembalian barang.
+- Melihat activity logs.
+
+## Dokumentasi Endpoint API
+
+Endpoint yang membutuhkan autentikasi menggunakan JWT melalui HTTP header berikut:
 
 ```http
 Authorization: Bearer JWT_TOKEN
 ```
 
-### Auth
+### 1. Auth
 
 | Method | Endpoint | Akses |
 |---|---|---|
@@ -80,9 +138,9 @@ Authorization: Bearer JWT_TOKEN
 | POST | `/api/auth/login` | Publik |
 | GET | `/api/auth/me` | User/Admin |
 
-### Categories
+### 2. Categories
 
-Semua endpoint kategori membutuhkan JWT admin.
+Seluruh endpoint kategori membutuhkan autentikasi JWT dengan role `admin`.
 
 | Method | Endpoint | Keterangan |
 |---|---|---|
@@ -92,21 +150,21 @@ Semua endpoint kategori membutuhkan JWT admin.
 | PATCH | `/api/categories/:id` | Memperbarui kategori |
 | DELETE | `/api/categories/:id` | Mengarsipkan kategori |
 
-### Items
+### 3. Items
 
-Semua endpoint barang membutuhkan JWT admin.
+Seluruh endpoint barang membutuhkan autentikasi JWT dengan role `admin`.
 
 | Method | Endpoint | Keterangan |
 |---|---|---|
 | POST | `/api/items` | Membuat barang |
-| GET | `/api/items` | Melihat barang aktif, dengan filter/paginasi |
+| GET | `/api/items` | Melihat barang aktif dengan filter dan pagination |
 | GET | `/api/items/:id` | Melihat detail barang |
 | PATCH | `/api/items/:id` | Memperbarui barang |
 | DELETE | `/api/items/:id` | Mengarsipkan barang |
 
-### Loans
+### 4. Loans
 
-Semua endpoint peminjaman membutuhkan JWT.
+Seluruh endpoint peminjaman membutuhkan autentikasi JWT.
 
 | Method | Endpoint | Akses |
 |---|---|---|
@@ -116,40 +174,70 @@ Semua endpoint peminjaman membutuhkan JWT.
 | PATCH | `/api/loans/:id/approve` | Admin |
 | PATCH | `/api/loans/:id/reject` | Admin |
 
-### Returns
+### 5. Returns
+
+Seluruh endpoint pengembalian membutuhkan autentikasi JWT.
 
 | Method | Endpoint | Akses |
 |---|---|---|
-| POST | `/api/returns` | User mengajukan pengembalian loan miliknya |
+| POST | `/api/returns` | User mengajukan pengembalian atas peminjaman miliknya |
 | GET | `/api/returns/my` | User melihat riwayat pengembaliannya |
 | GET | `/api/returns` | Admin melihat seluruh pengembalian |
 | GET | `/api/returns/:id` | User melihat miliknya; admin dapat melihat semua |
 | PATCH | `/api/returns/:id/verify` | Admin memverifikasi pengembalian |
 
-Pengajuan pengembalian berstatus `pending` dan belum menambah stok. Saat admin memverifikasi, status Return menjadi `verified`, status Loan menjadi `returned`, dan stok bertambah sesuai jumlah pengembalian.
+**Alur Pengembalian Barang:**
 
-### Activity Logs
+1. User mengajukan pengembalian barang melalui endpoint `POST /api/returns`.
+2. Pengajuan pengembalian disimpan dengan status `pending`.
+3. Stok barang belum bertambah selama pengajuan belum diverifikasi.
+4. Admin memeriksa pengajuan dan melakukan verifikasi.
+5. Setelah berhasil diverifikasi, status Return berubah menjadi `verified`, status Loan menjadi `returned`, dan stok barang bertambah sesuai jumlah pengembalian.
 
-Membutuhkan JWT admin.
+### 6. Activity Logs
+
+Endpoint Activity Logs membutuhkan autentikasi JWT dengan role `admin`.
+
+| Method | Endpoint | Keterangan |
+|---|---|---|
+| GET | `/api/activity-logs` | Melihat daftar aktivitas |
+ 
+Contoh penggunaan filter:
 
 ```http
-GET /api/activity-logs
 GET /api/activity-logs?action=login&actor=USER_ID&page=1&limit=20
 ```
 
-Log internal mencakup login, pembuatan kategori/barang, peminjaman, keputusan peminjaman, dan proses pengembalian. Log disimpan pada collection `activity_logs`.
+Activity Logs digunakan untuk mencatat aktivitas yang terjadi di dalam sistem, antara lain:
 
-### External Callback
+- Login pengguna.
+- Pembuatan kategori dan barang.
+- Pengajuan peminjaman.
+- Persetujuan atau penolakan peminjaman.
+- Proses pengembalian barang.
 
-Endpoint ini tidak menggunakan JWT, tetapi wajib menggunakan API key:
+Data aktivitas disimpan dalam collection `activity_logs`.
+
+### 7. External Callback
+
+Endpoint External Callback digunakan untuk menerima aktivitas dari sistem eksternal.
+
+Endpoint ini tidak menggunakan JWT, tetapi wajib menyertakan API key melalui header `x-api-key`.
+
+**Endpoint:**
 
 ```http
 POST /api/external/activity
+```
+
+**Header:**
+
+```http
 x-api-key: EXTERNAL_API_KEY
 Content-Type: application/json
 ```
 
-Body:
+**Contoh Request Body:**
 
 ```json
 {
@@ -159,38 +247,51 @@ Body:
 }
 ```
 
-Log callback disimpan pada collection `activity_logs` dengan `source: "external"`.
+Callback yang berhasil diterima akan dicatat dalam collection `activity_logs` dengan nilai `source: "external"`.
 
-## Seed data
+## Seed Data
 
-Seed bersifat idempotent: data yang sudah ada tidak dihapus atau digandakan.
+Proyek menyediakan seed data untuk mengisi data awal inventaris.
+
+Jalankan perintah berikut:
 
 ```bash
 npm run seed:inventory
 ```
 
-Seed menggunakan user admin yang tersedia sebagai `created_by` dan `updated_by`. Database harus memiliki minimal satu user.
+Proses seed bersifat idempotent, yaitu data yang sudah tersedia tidak dihapus atau digandakan ketika proses dijalankan kembali.
+
+Seed menggunakan user admin yang tersedia sebagai nilai `created_by` dan `updated_by`. Oleh karena itu, database harus memiliki minimal satu user admin sebelum proses seed dijalankan.
 
 Data minimum yang diverifikasi:
 
-- 4 kategori aktif
-- Setiap kategori minimal 5 barang
-- Setiap barang memiliki relasi kategori yang valid
+- 4 kategori aktif.
+- Setiap kategori memiliki minimal 5 barang.
+- Setiap barang memiliki relasi kategori yang valid.
 
-## Pengujian dengan Postman
+## Pengujian API dengan Postman
 
-1. `POST /api/auth/login` untuk memperoleh JWT user atau admin.
-2. Gunakan JWT pada header `Authorization` untuk endpoint yang dilindungi.
-3. Buat pengajuan loan menggunakan `POST /api/loans`.
-4. Admin menyetujui loan melalui `PATCH /api/loans/:id/approve`.
-5. User membuat pengajuan return melalui `POST /api/returns`.
-6. Admin memeriksa daftar melalui `GET /api/returns`.
-7. Admin memverifikasi melalui `PATCH /api/returns/:id/verify`.
-8. Periksa log melalui `GET /api/activity-logs`.
-9. Uji callback eksternal menggunakan `POST /api/external/activity` dengan header `x-api-key`.
-10. Uji kasus negatif: tanpa JWT, role tidak sesuai, API key tidak ada/salah, ID tidak valid, dan payload tidak lengkap.
+Pengujian API dilakukan menggunakan Postman untuk memastikan setiap endpoint dapat berjalan sesuai fungsi dan hak aksesnya.
 
-Contoh body login:
+Berikut tahapan pengujian utama:
+
+1. Melakukan login melalui `POST /api/auth/login` untuk memperoleh JWT user atau admin.
+2. Menggunakan JWT pada header `Authorization` untuk mengakses endpoint yang membutuhkan autentikasi.
+3. Membuat pengajuan peminjaman melalui `POST /api/loans`.
+4. Admin menyetujui pengajuan melalui `PATCH /api/loans/:id/approve`.
+5. User mengajukan pengembalian melalui `POST /api/returns`.
+6. Admin melihat daftar pengembalian melalui `GET /api/returns`.
+7. Admin memverifikasi pengembalian melalui `PATCH /api/returns/:id/verify`.
+8. Memeriksa catatan aktivitas melalui `GET /api/activity-logs`.
+9. Menguji callback eksternal melalui `POST /api/external/activity` dengan header `x-api-key`.
+10. Melakukan pengujian negatif, seperti akses tanpa JWT, role yang tidak sesuai, API key tidak valid, ID tidak valid, dan payload tidak lengkap.
+
+### Contoh Request Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
 
 ```json
 {
@@ -199,6 +300,12 @@ Contoh body login:
 }
 ```
 
-## Catatan audit
+## Catatan Implementasi
 
-Implementasi saat ini menggunakan middleware autentikasi dan validasi berbasis controller/validator. Repository belum menyediakan test runner otomatis atau dokumen TODO berfase Pre-Production, Production Stage 1, Production Stage 2, dan Post-Production; status audit item yang tidak dapat diverifikasi dari source harus dikonfirmasi melalui acceptance test atau checklist proyek resmi.
+- API menggunakan autentikasi JWT untuk endpoint yang membutuhkan akses pengguna.
+- Hak akses dibedakan berdasarkan role `user` dan `admin`.
+- Validasi input diterapkan untuk membantu menjaga konsistensi data.
+- Penghapusan kategori dan barang dilakukan melalui mekanisme arsip (*soft delete*).
+- Pengembalian barang harus diverifikasi oleh admin sebelum stok inventaris diperbarui.
+- Aktivitas pengguna dan callback eksternal dicatat dalam collection `activity_logs`.
+- Pengujian API dilakukan menggunakan Postman melalui pengujian endpoint berhasil maupun skenario negatif.
