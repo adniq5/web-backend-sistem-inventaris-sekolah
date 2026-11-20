@@ -285,6 +285,22 @@ Data minimum yang diverifikasi:
 - Setiap kategori memiliki minimal 5 barang.
 - Setiap barang memiliki relasi kategori yang valid.
 
+## Automated Testing
+
+Pengujian otomatis proyek menggunakan:
+
+- Jest sebagai testing framework.
+- Supertest untuk pengujian HTTP endpoint.
+- MongoDB Memory Server sebagai database testing terisolasi sehingga tidak menggunakan data MongoDB aplikasi atau MongoDB Atlas.
+
+Pengujian mencakup autentikasi, otorisasi, peminjaman, pengembalian, validasi stok, dan Activity Log.
+
+Untuk menjalankan seluruh pengujian otomatis:
+
+```bash
+npm.cmd test
+```
+
 ## Pengujian API dengan Postman
 
 Pengujian API dilakukan menggunakan Postman untuk memastikan setiap endpoint dapat berjalan sesuai fungsi dan hak aksesnya.
