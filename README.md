@@ -295,11 +295,15 @@ Pengujian otomatis proyek menggunakan:
 
 Pengujian mencakup autentikasi, otorisasi, peminjaman, pengembalian, validasi stok, dan Activity Log.
 
+File automated testing utama berada pada `tests/server.test.js`.
+
 Untuk menjalankan seluruh pengujian otomatis:
 
 ```bash
 npm.cmd test
 ```
+
+Contoh hasil pengujian: seluruh 15 test berhasil dijalankan dan dinyatakan passed.
 
 ## Pengujian API dengan Postman
 
